@@ -1,11 +1,12 @@
 services:
   jobmanager:
-    build: .
+    image: zablondev/flink-iceberg:latest
     hostname: jobmanager
     container_name: jobmanager
     depends_on:
       iceberg-rest:
         condition: service_healthy
+      
     networks:
       iceberg_net:
     ports:
@@ -20,7 +21,7 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: 4
         parallelism.default: 2
       AWS_REGION: us-east-1
       AWS_ACCESS_KEY_ID: admin
@@ -29,7 +30,7 @@ services:
 
 
   taskmanager:
-    build: .
+    image: zablondev/flink-iceberg:latest
     hostname: taskmanager
     command: taskmanager
 
@@ -43,7 +44,7 @@ services:
     environment:
       FLINK_PROPERTIES: |
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: 4
         parallelism.default: 2
 
       AWS_REGION: us-east-1
@@ -96,6 +97,9 @@ services:
       timeout: 5s
       retries: 5
 
+    volumes:
+      - minio_data:/data
+
 
   create-bucket:
     image: minio/mc
@@ -120,7 +124,7 @@ services:
       "
 
   trino-coordinator:
-    image: trinodb/trino:latest
+    image: trinodb/trino:476
     container_name: trino-coordinator
     ports:
       - "8085:8080"
@@ -152,7 +156,7 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft
 
     volumes:
-      - kafka_data:/var/lib/kafka/data
+      - kafka_data:/tmp/kraft-combined-logs
 
 
 
@@ -174,9 +178,18 @@ services:
               properties:
                 bootstrap.servers: "kafka:9092"
 
+  java-app:
+    image: zablondev/data-generator:latest
+    container_name: java-app
+    depends_on:
+      - kafka
+    networks:
+      iceberg_net:
+
 
 networks:
   iceberg_net:
+    driver: bridge
 
 volumes:
   minio_data:

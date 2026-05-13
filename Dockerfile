@@ -25,3 +25,10 @@ RUN echo "-> Install JARs: Hadoop" && \
     curl -fO https://repo.maven.apache.org/maven2/org/apache/hadoop/hadoop-client-api/${HADOOP_VERSION}/hadoop-client-api-${HADOOP_VERSION}.jar && \
     curl -fO https://repo.maven.apache.org/maven2/org/apache/hadoop/hadoop-client-runtime/${HADOOP_VERSION}/hadoop-client-runtime-${HADOOP_VERSION}.jar && \
     popd
+
+
+# Kafka connector
+RUN echo "-> Install Kafka connector" && \
+    curl -fLo /opt/flink/lib/flink-sql-connector-kafka.jar \
+    https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/4.0.0-2.0/flink-sql-connector-kafka-4.0.0-2.0.jar
+
